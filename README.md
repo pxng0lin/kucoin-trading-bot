@@ -1,5 +1,5 @@
 # PART OF MY 'NOTADEV' SERIES
-blog: [pxng0lin-un-chained](https://pxng0lin.hashnode.dev/)
+### Visit my blog: [pxng0lin-un-chained](https://pxng0lin.hashnode.dev/)
 
 ## !! Disclaimer !!
 This bot is provided for **educational purposes only**. I am not a financial advisor or an expert in trading. The bot and its functionality should be used with caution, and **I take no responsibility for any financial losses that may occur as a result of using this bot**. It is important to thoroughly understand the risks involved in trading before using any automated trading software. **Use at your own risk**. Always consult with a qualified financial professional before making any investment decisions.
