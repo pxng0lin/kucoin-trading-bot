@@ -31,11 +31,10 @@ PAIRS = os.getenv('PAIRS').replace('"', '').split(',')
 FEATURE_COLUMNS = ['ema50', 'ema200', 'macd', 'macdsignal', 'rsi', 'psar', 'atr', 'bollinger_upper', 'bollinger_lower', 'vwap']
 
 # Function to send Telegram message
-async def send_telegram_message(bot, message, chat_id, emoji):
+async def send_telegram_message(bot, message, chat_id):
     try:
-        tgb_msg = f"{emoji} {message}"
-        await bot.send_message(chat_id=chat_id, text=tgb_msg)
-        print(f"Telegram message sent: {tgb_msg}")
+        await bot.send_message(chat_id=chat_id, text=message)
+        print(f"Telegram message sent: {message}")
     except Exception as e:
         print(f"Failed to send Telegram message: {e}")
 
@@ -81,7 +80,7 @@ async def create_order(pair, side, usdt_amount=None, token_amount=None):
 
         if current_price is None:
             print(f"Error: Could not fetch current price for {pair}")
-            await send_telegram_message(tg_bot, f"Error: Could not fetch current price for {pair}.", tg_channel, "❌")
+            await send_telegram_message(tg_bot, f"Error: Could not fetch current price for {pair}.", tg_channel)
             return
 
         print(f"Current price for {pair}: {current_price}")
@@ -99,13 +98,13 @@ async def create_order(pair, side, usdt_amount=None, token_amount=None):
             min_order_size = get_min_order_size(pair)
             if min_order_size and token_amount < min_order_size:
                 print(f"Order amount {token_amount} is below the minimum order size of {min_order_size} for {pair}")
-                await send_telegram_message(tg_bot, f"Order amount {token_amount} below minimum size for {pair}. No order created.", tg_channel, "⚠️")
+                await send_telegram_message(tg_bot, f"Order amount {token_amount} below minimum size for {pair}. No order created.", tg_channel)
                 return
 
             # Create a market buy order
             order = exchange.create_order(pair, 'market', 'buy', token_amount)
             print(f"Buy order created: {order}")
-            await send_telegram_message(tg_bot, f"Buy order created for {pair}: {token_amount} (worth {usdt_amount} USDT)", tg_channel, "🔵")
+            await send_telegram_message(tg_bot, f"Buy order created for {pair}: {token_amount} (worth {usdt_amount} USDT)", tg_channel)
 
         elif side == 'sell':
             if token_amount is None or token_amount <= 0:
@@ -118,17 +117,17 @@ async def create_order(pair, side, usdt_amount=None, token_amount=None):
             min_order_size = get_min_order_size(pair)
             if min_order_size and token_amount < min_order_size:
                 print(f"Order amount {token_amount} is below the minimum order size of {min_order_size} for {pair}")
-                await send_telegram_message(tg_bot, f"Order amount {token_amount} below minimum size for {pair}. No order created.", tg_channel, "⚠️")
+                await send_telegram_message(tg_bot, f"Order amount {token_amount} below minimum size for {pair}. No order created.", tg_channel)
                 return
 
             # Create a market sell order
             order = exchange.create_order(pair, 'market', 'sell', token_amount)
             print(f"Sell order created: {order}")
-            await send_telegram_message(tg_bot, f"Sell order created for {pair}: {token_amount} tokens", tg_channel, "🟢")
+            await send_telegram_message(tg_bot, f"Sell order created for {pair}: {token_amount} tokens", tg_channel)
 
     except Exception as e:
         print(f"Order creation failed: {e}")
-        await send_telegram_message(tg_bot, f"Order creation failed: {e}", tg_channel, "❌")
+        await send_telegram_message(tg_bot, f"Order creation failed: {e}", tg_channel)
 
 # Load the trained Random Forest model, or train it if no model exists
 def load_model():
@@ -139,21 +138,6 @@ def load_model():
     except FileNotFoundError:
         print("Model file not found. Training a new model.")
         return train_and_save_model()
-
-# Train the model using historical data
-def train_and_save_model():
-    historical_data = fetch_historical_data()  # Fetch historical data using real API
-    X, y = prepare_data(historical_data)
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    model = RandomForestClassifier()
-    model.fit(X_train, y_train)
-    print("Model trained.")
-    joblib.dump(model, "random_forest_model.pkl")
-    print("Model saved to random_forest_model.pkl.")
-
-    return model
 
 # Prepare features and target for training the model
 def prepare_data(df):
@@ -273,7 +257,6 @@ async def process_data(pair, model, allocated_amount_per_token):
 
     await send_telegram_message(tg_bot, message, tg_channel)
 
-
 # Main loop to handle each pair
 async def main():
     model = load_model()
@@ -285,7 +268,7 @@ async def main():
         available_usdt_balance = 0
 
     print(f"Total available USDT: {available_usdt_balance}")
-    await send_telegram_message(tg_bot, f"Bot starting with {available_usdt_balance} USDT available.", tg_channel, "🚀")
+    await send_telegram_message(tg_bot, f"🚀 Bot starting with {available_usdt_balance} USDT available.", tg_channel)
 
     tokens_with_zero_balance = []
     allocated_amount_per_token = {}
@@ -310,9 +293,7 @@ async def main():
 
     for pair in PAIRS:
         print(f"Starting process for {pair}...")
-        await send_telegram_message(tg_bot, f"Processing {pair}...", tg_channel, "🔄")
         await process_data(pair, model, allocated_amount_per_token)
-        await send_telegram_message(tg_bot, f"Process complete for {pair}.", tg_channel, "✅")
 
 # Run the main loop asynchronously
 if __name__ == "__main__":
