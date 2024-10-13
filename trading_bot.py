@@ -233,11 +233,15 @@ def make_prediction_with_confluence(model, latest_data):
 async def process_data(pair, model, allocated_amount_per_token):
     if not pair.endswith('/USDT'):
         print(f"Skipping {pair} because it doesn't trade with USDT.")
-        await send_telegram_message(tg_bot, f"Skipping {pair}: Not a USDT pair.", tg_channel, "⚠️")
+        await send_telegram_message(tg_bot, f"Skipping {pair}: Not a USDT pair.", tg_channel)
         return
 
     latest_data = fetch_latest_data(pair)
-    await send_telegram_message(tg_bot, f"Fetching data for {pair}...", tg_channel, "📊")
+    if latest_data.empty or 'close' not in latest_data.columns:
+        print(f"Error fetching latest data for {pair}: missing 'close' column or empty data.")
+        return
+
+    message = f"🔄 Processing {pair}:\n"
 
     buy_proba, sell_proba, _ = make_prediction_with_confluence(model, latest_data)
 
@@ -246,19 +250,29 @@ async def process_data(pair, model, allocated_amount_per_token):
 
     spend = allocated_amount_per_token.get(pair, 0)
 
-    print(f"Prediction probabilities: Sell: {sell_proba:.2f}, Buy: {buy_proba:.2f}")
+    message += "📊 Prediction Probabilities:\n"
+    message += f"   - Buy Probability: {buy_proba * 100:.0f}%\n"
+    message += f"   - Sell Probability: {sell_proba * 100:.0f}%\n"
 
-    if buy_proba > 0.65 and spend > 0 and available_token_balance == 0:
-        print(f"Buy signal detected based on model prediction.")
-        await send_telegram_message(tg_bot, f"Buy signal detected for {pair}.", tg_channel, "🔵")
-        await create_order(pair, 'buy', spend)
+    if buy_proba > 0.65:
+        if available_token_balance == 0:
+            if spend > 0:
+                message += f"🔵 Buy signal detected, creating buy order.\n"
+                await create_order(pair, 'buy', spend)
+            else:
+                message += f"⚠️ Buy signal detected, but no USDT allocated for {pair}. No buy action taken.\n"
+        else:
+            message += f"⚠️ Buy signal detected, but already holding {available_token_balance} {token} tokens. No buy action taken.\n"
     elif sell_proba > 0.65 and available_token_balance > 0:
-        print(f"Sell signal detected based on model prediction.")
-        await send_telegram_message(tg_bot, f"Sell signal detected for {pair}.", tg_channel, "🟢")
+        message += f"🟢 Sell signal detected, creating sell order.\n"
         await create_order(pair, 'sell', token_amount=available_token_balance)
     else:
-        print(f"No clear signal for {pair}")
-        await send_telegram_message(tg_bot, f"No clear signal for {pair}.", tg_channel, "🔘")
+        message += f"🔘 No clear signal for {pair}.\n"
+
+    message += f"✅ Process complete for {pair}.\n"
+
+    await send_telegram_message(tg_bot, message, tg_channel)
+
 
 # Main loop to handle each pair
 async def main():
