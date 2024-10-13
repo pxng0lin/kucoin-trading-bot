@@ -148,5 +148,3 @@ This script summarizes recent trades and portfolio status, sending the report vi
 This crypto trading bot is a comprehensive solution for trading on KuCoin using machine learning. The model training script enables you to train your own model based on historical market data, while the trading bot uses this model to make live predictions and trade accordingly. Additionally, the summary script provides a detailed report of your portfolio and recent trades.
 
 With the included Telegram integration, you’ll be able to monitor all trading activities and portfolio updates in real-time.
-
-Disclaimer: 
