@@ -1,96 +1,152 @@
+# PART OF MY NOTADEV SERIES
 
-# Trading Bot for KuCoin Exchange
+## !! Disclaimer !!
+This bot is provided for **educational purposes only**. I am not a financial advisor or an expert in trading. The bot and its functionality should be used with caution, and **I take no responsibility for any financial losses that may occur as a result of using this bot**. It is important to thoroughly understand the risks involved in trading before using any automated trading software. **Use at your own risk**. Always consult with a qualified financial professional before making any investment decisions.
 
-This is a trading bot for the KuCoin exchange that automatically detects buy and sell signals using machine learning models and technical indicators. The bot monitors selected cryptocurrency pairs, analyzes historical and real-time data, and executes trades based on a combination of prediction probabilities and market conditions.
+# Crypto Trading Bot with KuCoin Integration
+
+This repository contains a comprehensive crypto trading bot that works with the **KuCoin** exchange, using **machine learning** to make buy and sell predictions based on historical market data. Additionally, a **portfolio summary** script is included to provide updates on recent trades and the current state of your portfolio.
 
 ## Features
 
-- **Machine Learning-Based Predictions**: The bot uses a trained Random Forest classifier to predict buy or sell signals based on historical data and real-time market analysis.
-- **Technical Indicators**: The bot leverages key technical indicators like EMA (50 and 200), MACD, RSI, ATR, PSAR, Bollinger Bands, and VWAP to generate and confirm signals.
-- **Confluence Approach**: Signals are generated when a confluence of indicators aligns with the prediction probabilities from the model. This ensures a higher level of confidence in each trade decision.
-- **Automated Trading**: When a buy or sell signal is detected, the bot places market orders on KuCoin using available USDT or token balances.
-- **Balance Management**: The bot allocates available USDT to different trading pairs based on the tokens with zero balance. This ensures efficient use of available capital.
-- **Telegram Notifications**: The bot sends real-time updates and notifications via Telegram for every buy, sell, or decision to skip a trade due to existing balances.
+### 1. **Trading Bot**:
+   - **Buy and Sell Signals**: The bot predicts buy and sell signals using a trained **Random Forest Classifier**.
+   - **Technical Indicators**: Uses technical indicators such as EMA, MACD, RSI, ATR, and Bollinger Bands for predictions.
+   - **Automated Trading**: Executes buy/sell orders on KuCoin based on the model’s predictions.
+   - **Telegram Notifications**: Sends updates and results to a specified Telegram chat.
 
-## Logic Overview
+### 2. **Model Training Script**:
+   - **Data Collection**: Fetches historical market data from KuCoin.
+   - **Feature Engineering**: Computes various technical indicators used to train the model.
+   - **Random Forest Model**: Trains a machine learning model based on the collected data.
+   - **Dynamic Data Range**: Attempts to collect up to 5 years of historical data, reducing the range if data is unavailable.
 
-1. **Data Collection**: 
-   - The bot fetches historical and real-time OHLCV (open, high, low, close, volume) data for each trading pair.
-   - This data is used to calculate various technical indicators.
+### 3. **Summary Script**:
+   - **Transaction Summary**: Fetches and displays the last 10 transactions for each trading pair.
+   - **Profit/Loss Calculation**: Calculates profit or loss for each pair using a **First-In, First-Out (FIFO)** approach.
+   - **Portfolio Summary**: Shows the current balance and status of your portfolio.
+   - **Telegram Notifications**: Sends the summary report to a Telegram chat.
 
-2. **Model Prediction**:
-   - A Random Forest model, trained on historical data, generates probabilities for buy and sell signals.
-   - The model uses features such as EMA, MACD, RSI, PSAR, ATR, VWAP, and Bollinger Bands.
+## Installation Instructions
 
-3. **Signal Generation**:
-   - If the model predicts a buy probability above a certain threshold (e.g., 0.65) and the token has no existing balance, the bot triggers a buy order.
-   - If the model predicts a sell probability above a certain threshold and the token has a balance, the bot triggers a sell order.
-   - No trade is made if the bot detects that a signal exists but the conditions for a buy or sell are not met (e.g., token already held or insufficient USDT).
-
-4. **Execution**:
-   - The bot executes market buy/sell orders through the KuCoin exchange using `ccxt`.
-
-## Installation
-
-To install and run the bot, follow these steps:
-
-### 1. Clone the repository
-
+### 1. **Clone the Repository**:
 ```bash
-git clone https://github.com/yourusername/kucoin-trading-bot.git
+https://github.com/pxng0lin/kucoin-trading-bot.git
 cd kucoin-trading-bot
 ```
 
-### 2. Set up environment variables
-
-Create a `.env` file in the root directory of the project with the following content:
-
-```plaintext
-KUCOIN_API_KEY=your_kucoin_api_key
-KUCOIN_SECRET_KEY=your_kucoin_secret_key
-KUCOIN_PASSWORD=your_kucoin_password
-TG_BOT=your_telegram_bot_api_key
-TG_ID=your_telegram_chat_id
-PAIRS="PAIR1/USDT,PAIR2/USDT..."  # Comma-separated list of trading pairs
-```
-
-Make sure to replace the values with your actual KuCoin API credentials and Telegram bot credentials.
-
-### 3. Install dependencies
-
-The project requires Python 3.9 or above. Install the necessary packages using the following command:
-
+### 2. **Install Required Dependencies**:
 ```bash
 pip install -r requirements.txt
 ```
 
-Here is a list of the required packages:
+Contents of `requirements.txt`:
+```txt
+ccxt
+python-dotenv
+telegram
+pandas
+asyncio
+numpy
+scikit-learn
+joblib
+talib
+```
 
-- `ccxt`: A cryptocurrency trading library to interact with KuCoin and other exchanges.
-- `pandas`: For data manipulation and analysis.
-- `talib`: A library for technical analysis indicators.
-- `python-telegram-bot`: To send notifications via Telegram.
-- `joblib`: For saving and loading the trained machine learning model.
-- `scikit-learn`: For training and predicting using the Random Forest classifier.
-- `python-dotenv`: For managing environment variables from a `.env` file.
-- `numpy`: For numerical computations.
+### 3. **Setup `.env` File**:
+Create a `.env` file in the root of your project and provide the following environment variables:
 
-### 4. Running the Bot
+```env
+KUCOIN_API_KEY=your_kucoin_api_key
+KUCOIN_SECRET_KEY=your_kucoin_secret_key
+KUCOIN_PASSWORD=your_kucoin_password
+TG_BOT_SUGI=your_telegram_bot_api_key
+TG_ID=your_telegram_chat_id
+PAIRS="" e.g. "AVAX/USDT,BNB/USDT"
+```
 
-Once the environment is set up and dependencies are installed, you can start the bot using:
+### Environment Variables Explanation:
+- `KUCOIN_API_KEY`, `KUCOIN_SECRET_KEY`, `KUCOIN_PASSWORD`: Your KuCoin API credentials.
+- `TG_BOT`: Your Telegram bot API key.
+- `TG_ID`: The chat ID where the bot will send its updates.
+- `PAIRS`: A comma-separated list of trading pairs you want to trade (e.g., `AVAX/USDT`, `SOL/USDT`, `BNB/USDT`).
+
+### 4. **Run the Scripts**
+
+#### Trading Bot:
+The bot uses a trained model to execute buy and sell orders based on market conditions.
 
 ```bash
 python trading_bot.py
 ```
 
-The bot will load the trained machine learning model (`random_forest_model.pkl`) and start monitoring the specified trading pairs. If the model does not exist, it will automatically train a new model using historical data.
-
-### 5. Training a New Model (Optional)
-
-If you need to retrain the model manually, run the model training script:
-
+#### Model Training Script:
+To fetch historical data and train the machine learning model:
 ```bash
-python model_script.py
+python model_training.py
 ```
 
-This script will fetch historical data for each pair, calculate technical indicators, and train the Random Forest model. The trained model will be saved to `random_forest_model.pkl`.
+The model will be saved as `random_forest_model.pkl` and will be used by the trading bot.
+
+#### Summary Script:
+To get a portfolio summary and profit/loss report:
+```bash
+python summary_script.py
+```
+
+This script will send a formatted portfolio summary and recent trade performance to your Telegram.
+
+## Script Breakdown
+
+### 1. **Trading Bot (`trading_bot.py`)**
+
+This script automates the trading process on KuCoin using a machine learning model that predicts buy and sell signals based on technical indicators.
+
+**Key Features**:
+- **Automated Trading**: Buys and sells tokens automatically based on the model’s predictions.
+- **Dynamic Allocation**: Splits your USDT balance across multiple tokens and executes trades accordingly.
+- **Technical Analysis**: Uses EMA, MACD, RSI, Bollinger Bands, ATR, and VWAP to generate prediction features.
+- **Model Integration**: Uses a trained Random Forest model to predict the probability of price movements.
+- **Telegram Alerts**: Notifies you of trades and results via Telegram.
+
+**How It Works**:
+- The bot fetches the latest market data for each trading pair specified in the `.env` file.
+- It calculates various technical indicators and passes them to the machine learning model.
+- Based on the prediction probabilities, it decides whether to execute a buy or sell order.
+
+### 2. **Model Training Script (`model_training.py`)**
+
+This script fetches historical market data for the specified trading pairs and trains a machine learning model using technical indicators.
+
+**Key Features**:
+- **Data Collection**: Fetches historical OHLCV data (open, high, low, close, volume) from KuCoin.
+- **Technical Indicators**: Computes a variety of indicators (EMA, MACD, RSI, ATR, etc.) to use as model features.
+- **Training**: Trains a Random Forest model to predict future price movements.
+- **Data Management**: Attempts to fetch up to 5 years of data, adjusting the date range if data is unavailable.
+
+**How It Works**:
+- Fetches historical data for the trading pairs in the `.env` file.
+- Trains a Random Forest classifier using the technical indicators as features.
+- Saves the trained model to `random_forest_model.pkl` for future use by the trading bot.
+
+### 3. **Summary Script (`summary_script.py`)**
+
+This script summarizes recent trades and portfolio status, sending the report via Telegram.
+
+**Key Features**:
+- **Transaction Summary**: Fetches the last 10 transactions for each trading pair and calculates profit or loss.
+- **Portfolio Summary**: Displays the current balance and holdings for all traded tokens.
+- **Telegram Alerts**: Sends the portfolio summary to your specified Telegram chat.
+
+**How It Works**:
+- Fetches the last 10 transactions for each pair and computes the profit/loss using a FIFO approach.
+- Fetches the current token balances from KuCoin.
+- Sends a summary of the profit/loss and token balances to your Telegram chat.
+
+## Conclusion
+
+This crypto trading bot is a comprehensive solution for trading on KuCoin using machine learning. The model training script enables you to train your own model based on historical market data, while the trading bot uses this model to make live predictions and trade accordingly. Additionally, the summary script provides a detailed report of your portfolio and recent trades.
+
+With the included Telegram integration, you’ll be able to monitor all trading activities and portfolio updates in real-time.
+
+Disclaimer: 
